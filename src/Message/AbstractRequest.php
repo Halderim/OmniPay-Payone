@@ -36,6 +36,14 @@ abstract class AbstractRequest extends OmnipayAbstractRequest
     const ITEM_TYPE_HANDLING = 'handling';
     // Voucher / discount
     const ITEM_TYPE_VOUCHER = 'voucher';
+    
+    /**
+     * recurring method for PAYONE.
+     *
+     * https://docs.payone.com/display/public/PLATFORM/Special+remarks+-+Recurring+transactions+credit+card#expand-SampleInitialRequest
+     */
+    const RECURRENCE_TYPE_RECURRING = 'recurring';
+    const RECURRENCE_TYPE_ONECLICK = 'oneclick';
 
     /**
      * The list of raw data fields that must be hashed to protect from
@@ -88,6 +96,10 @@ abstract class AbstractRequest extends OmnipayAbstractRequest
         'vreference',
         'clearingtype',
         'encoding',
+        //
+        //Special remarks - Recurring transactions credit card (https://docs.payone.com/display/public/PLATFORM/Special+remarks+-+Recurring+transactions+credit+card#expand-SampleInitialRequest)
+        'customer_is_present',
+        'recurrence',
         //
         // Listed in documentation only, either in a dedicated list or
         // or marked as requiring a hash in the field tables.
@@ -225,7 +237,7 @@ abstract class AbstractRequest extends OmnipayAbstractRequest
         $hash_data = $this->filterHashFields($data);
 
         // Sort the data alphanbetically by key.
-        ksort($hash_data);
+        ksort($hash_data, SORT_NATURAL);
 
         return $this->hashString(implode('', $hash_data));
     }
@@ -257,6 +269,14 @@ abstract class AbstractRequest extends OmnipayAbstractRequest
     {
         if ($this->getCustomerId()) {
             $data['customerid'] = $this->getCustomerId();
+        }
+
+        if ($this->getCustomerIsPresent()) {
+            $data['customer_is_present'] = $this->getCustomerIsPresent();
+        }
+
+        if ($this->getRecurrence()) {
+            $data['recurrence'] = $this->getRecurrence();
         }
 
         if ($this->getDebtorId()) {
@@ -696,6 +716,39 @@ abstract class AbstractRequest extends OmnipayAbstractRequest
         return $this->getParameter('debtorId');
     }
 
+    public function getCustomerIsPresent()
+    {
+        return $this->getParameter('customer_is_present');
+    }
+
+    /**
+     * is Customer present by payment
+     */
+    public function setCustomerIsPresent($isPresent)
+    {
+        if (!is_bool($isPresent)) {
+            throw new InvalidRequestException('"customer_is_present" must be boolean.');
+        }
+        return $this->setParameter('customer_is_present', $isPresent ? 'yes' : 'no');
+    }
+
+    public function getRecurrence()
+    {
+        return $this->getParameter('recurrence');
+    }
+
+    /**
+     * recurring method for PAYONE.
+     *
+     * https://docs.payone.com/display/public/PLATFORM/Special+remarks+-+Recurring+transactions+credit+card#expand-SampleInitialRequest
+     */
+    public function setRecurrence($recurrence)
+    {
+        if ($recurrence !== self::RECURRENCE_TYPE_ONECLICK && $recurrence !== self::RECURRENCE_TYPE_RECURRING) {
+            throw new InvalidRequestException('"recurrence" must have a value of "oneclick" or "recurring".');
+        }
+        return $this->setParameter('recurrence', $recurrence);
+    }
     /**
      * The VAT number (optional).
      */
