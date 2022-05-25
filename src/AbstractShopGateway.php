@@ -82,7 +82,7 @@ abstract class AbstractShopGateway extends AbstractGateway
      * 3.10 API from 2016-06-01
      * 3.11 API from 2018-02-01
      */
-    const API_VERSION = '3.9';
+    const API_VERSION = '3.11';
 
     /**
      * merchantId = Merchant account ID (mid: N..6)
