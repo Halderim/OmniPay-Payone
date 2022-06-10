@@ -29,6 +29,18 @@ class ShopServerAuthorizeRequest extends AbstractRequest
      */
     protected $request_code = 'preauthorization';
 
+    private $isBillingAgreementRequest = 0;
+
+    public function setIsBillingAgreementRequest ($value) {
+        if ( $value === 0 || $value === 1) {
+            $this->isBillingAgreementRequest = $value;
+        }
+    }
+
+    public function getIsBillingAgreementRequest () {
+        return $this->isBillingAgreementRequest;
+    }
+
     /**
      * Base data required for all Server transactions.
      */
@@ -94,7 +106,9 @@ class ShopServerAuthorizeRequest extends AbstractRequest
         $data = array_merge($data, $this->getDataUrl());
 
         // Shipping details.
-        $data = array_merge($data, $this->getDataShipping());
+        if (!$this->isBillingAgreementRequest) {
+            $data = array_merge($data, $this->getDataShipping());
+        }
 
         // Items/Cart details
         $data = array_merge($data, $this->getDataItems());
